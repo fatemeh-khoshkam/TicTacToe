@@ -1,7 +1,8 @@
-import "./App.css";
+//import "./App.css";
+import TicTacToe from "./components/TicTacToe";
 
 function App() {
-  return <div className="App">Tic Tac Toe</div>;
+  return <TicTacToe />;
 }
 
 export default App;

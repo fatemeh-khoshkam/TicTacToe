@@ -3,16 +3,32 @@ import "./TicTacToe.css";
 import Button from "./Button";
 
 export default function TicTacToe() {
-  type Square = "X" | "O" | null;
+  type Square = string | null;
   type Board = Square[];
 
-  const initialBoard: Board = Array(9).fill(null);
+  const getLocalBoard = (): Board[] => {
+    const storedBoardHistory = localStorage.getItem("boardHistory");
+    if (storedBoardHistory) {
+      const boardHistory: Board[] = JSON.parse(storedBoardHistory).map(
+        (board: Board) =>
+          board.map((square: string | null) =>
+            square === "null" ? null : square
+          )
+      );
+      return boardHistory;
+    }
+    return [Array(9).fill(null)];
+  };
+
+  const initialBoardHistory: Board[] = getLocalBoard();
+  const initialBoardIndex = initialBoardHistory.length - 1;
+
   const [{ board, boardIndex }, setBoard] = useState<{
     board: Board[];
     boardIndex: number;
   }>({
-    board: [initialBoard],
-    boardIndex: 0,
+    board: initialBoardHistory,
+    boardIndex: initialBoardIndex,
   });
 
   /*
@@ -69,15 +85,15 @@ export default function TicTacToe() {
     };
   };
 
-  console.log(board);
-  console.log(boardIndex);
+  //   console.log(board);
+  //   console.log(boardIndex);
 
   const currentBoard = board[boardIndex];
   if (!currentBoard) {
     // Handle the case where currentBoard is undefined
     setBoard({
-      board: [initialBoard],
-      boardIndex: 0,
+      board: initialBoardHistory,
+      boardIndex: initialBoardIndex,
     });
     return null;
   }
@@ -96,33 +112,40 @@ export default function TicTacToe() {
     // 1. Remove any future history after current boardIndex
     // 2. Add the new board state
     // 3. Increment the boardIndex
+    const newBoardState = [...board.slice(0, boardIndex + 1), nextBoard];
     setBoard({
-      board: [...board.slice(0, boardIndex + 1), nextBoard],
+      board: newBoardState,
       boardIndex: boardIndex + 1,
     });
+
+    localStorage.setItem("boardHistory", JSON.stringify(newBoardState));
   };
 
   const loadBoard = (index: number) => {
     if (index >= 0 && index < board.length) {
+      const newBoardState = board.slice(0, index);
       setBoard({
-        board,
+        board: newBoardState,
         boardIndex: index,
       });
+      localStorage.setItem("boardHistory", JSON.stringify(newBoardState));
     }
   };
 
   // Reset the board to the initial state
   const resetBoard = () => {
+    const initialBoard = Array(9).fill(null);
     setBoard({
       board: [initialBoard],
       boardIndex: 0,
     });
+    localStorage.setItem("boardHistory", JSON.stringify([initialBoard]));
   };
   const resetDisabled = boardIndex === 0;
 
   // Undo the last movement
   const undoDisabled = boardIndex === 0 || isFinished;
-  const undoClickHandler = () => loadBoard(boardIndex - 1);
+  const undoClickHandler = () => loadBoard(boardIndex);
 
   let boardStatus = `Player ${nextPlayer}, it's your turn!`;
   if (isFinished) {

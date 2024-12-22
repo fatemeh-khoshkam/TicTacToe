@@ -3,14 +3,21 @@ export default function Button({
   onClick,
   disabled,
   children,
+  className,
 }: {
   type: "button" | "submit";
   onClick: () => void;
   disabled: boolean;
   children: string;
+  className?: string;
 }) {
   return (
-    <button type={type} className="btn" onClick={onClick} disabled={disabled}>
+    <button
+      type={type}
+      className={`btn ${className}`.trim()}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );

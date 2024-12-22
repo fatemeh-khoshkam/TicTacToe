@@ -9,15 +9,20 @@ export default function TicTacToe() {
   const getLocalBoard = (): Board[] => {
     const storedBoardHistory = localStorage.getItem("boardHistory");
     if (storedBoardHistory) {
-      const boardHistory: Board[] = JSON.parse(storedBoardHistory).map(
-        (board: Board) =>
-          board.map((square: string | null) =>
-            square === "null" ? null : square
-          )
-      );
-      return boardHistory;
-    }
-    return [Array(9).fill(null)];
+      try {
+        const boardHistory: Board[] = JSON.parse(storedBoardHistory).map(
+          (board: Board) =>
+            board.map((square: string | null) =>
+              square === "null" ? null : square
+            )
+        );
+        return boardHistory;
+      } catch (e) {
+        console.log(e);
+        localStorage.removeItem("boardHistory");
+        return [Array(9).fill(null)];
+      }
+    } else return [Array(9).fill(null)];
   };
 
   const initialBoardHistory: Board[] = getLocalBoard();
@@ -30,7 +35,7 @@ export default function TicTacToe() {
     board: initialBoardHistory,
     boardIndex: initialBoardIndex,
   });
-
+  console.log([board, boardIndex]);
   /*
           Winning Combinations based on index of board in a row and column and diagonal
           +---+---+---+
@@ -147,6 +152,14 @@ export default function TicTacToe() {
   const undoDisabled = boardIndex === 0 || isFinished;
   const undoClickHandler = () => loadBoard(boardIndex);
 
+  // Display the board move history
+  const moveHistoryHandler = (index: number) => {
+    setBoard((prevState) => ({
+      ...prevState,
+      boardIndex: index,
+    }));
+  };
+
   let boardStatus = `Player ${nextPlayer}, it's your turn!`;
   if (isFinished) {
     boardStatus = winner ? `Winner: Player ${winner} 🎉🥳` : `Nobody won.`;
@@ -171,16 +184,31 @@ export default function TicTacToe() {
       </div>
 
       <div className="controls">
-        <Button type="button" onClick={resetBoard} disabled={resetDisabled}>
-          Reset
-        </Button>
-        <Button
-          type="button"
-          onClick={undoClickHandler}
-          disabled={undoDisabled}
-        >
-          Undo
-        </Button>
+        <div className="board-history">
+          {board.map((_, index) => (
+            <Button
+              type="button"
+              key={index}
+              disabled={isFinished}
+              onClick={() => moveHistoryHandler(index)}
+              className={index === boardIndex ? "" : "notFocused"}
+            >
+              {String(index + 1)}
+            </Button>
+          ))}
+        </div>
+        <div className="board-btns">
+          <Button type="button" onClick={resetBoard} disabled={resetDisabled}>
+            Reset
+          </Button>
+          <Button
+            type="button"
+            onClick={undoClickHandler}
+            disabled={undoDisabled}
+          >
+            Undo
+          </Button>
+        </div>
       </div>
     </div>
   );
